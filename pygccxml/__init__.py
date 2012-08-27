@@ -42,3 +42,5 @@ warnings.simplefilter("always", DeprecationWarning)
 # 1. Add "explicit" property for constructors
 
 __version__ = '1.9.1'
+
+symap2ic_patched = True
