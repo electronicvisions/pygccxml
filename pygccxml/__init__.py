@@ -36,3 +36,5 @@ import pygccxml.utils as utils
 __version__ = '1.5.1'
 
 __revision__ = 1080
+
+symap2ic_patched = True
