@@ -192,6 +192,7 @@ from .smart_pointer_traits import auto_ptr_traits
 from .smart_pointer_traits import smart_pointer_traits
 from .smart_pointer_traits import internal_type_traits
 
+from .container_traits import array_traits
 from .container_traits import list_traits
 from .container_traits import deque_traits
 from .container_traits import queue_traits

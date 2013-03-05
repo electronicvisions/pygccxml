@@ -533,6 +533,12 @@ class container_traits_impl_t(object):
             return no_defaults
 
 
+array_traits = container_traits_impl_t(
+    'array',
+    0,
+    'value_type',
+    'erase_allocator')
+
 list_traits = container_traits_impl_t(
     'list',
     0,
@@ -661,6 +667,7 @@ unordered_multiset_traits = container_traits_impl_t(
     unordered_maps_and_sets=True)
 
 all_container_traits = (
+    array_traits,
     list_traits,
     deque_traits,
     queue_traits,
@@ -682,6 +689,7 @@ all_container_traits = (
 """tuple of all STD container traits classes"""
 
 sequential_container_traits = [
+    array_traits,
     list_traits,
     deque_traits,
     queue_traits,
