@@ -377,6 +377,12 @@ class container_traits_impl_t:
             return no_defaults
 
 create_traits = container_traits_impl_t
+
+array_traits = create_traits( 'array'
+                             , 0
+                             , 'value_type'
+                             , defaults_eraser.erase_allocator )
+
 list_traits = create_traits( 'list'
                              , 0
                              , 'value_type'
@@ -458,7 +464,8 @@ hash_multiset_traits = create_traits( 'hash_multiset'
                                       , defaults_eraser.erase_hash_allocator )
 
 container_traits = (
-      list_traits
+      array_traits
+    , list_traits
     , deque_traits
     , queue_traits
     , priority_queue_traits

@@ -177,6 +177,7 @@ from type_traits import auto_ptr_traits
 from type_traits import smart_pointer_traits
 from type_traits import internal_type_traits
 
+from container_traits import array_traits
 from container_traits import list_traits
 from container_traits import deque_traits
 from container_traits import queue_traits
@@ -200,7 +201,8 @@ all_container_traits = container_traits.container_traits
 
 sequential_container_traits = \
 [
-    list_traits
+    array_traits
+    , list_traits
     , deque_traits
     , queue_traits
     , priority_queue_traits
