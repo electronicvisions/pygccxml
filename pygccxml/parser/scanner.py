@@ -337,7 +337,7 @@ class scanner_t(xml.sax.handler.ContentHandler):
 
     @staticmethod
     def __read_artificial(decl, attrs):
-        decl.is_artificial = attrs.get(XML_AN_ARTIFICIAL, False)
+        decl.is_artificial = bool(attrs.get(XML_AN_ARTIFICIAL, False))
 
     def __read_mangled(self, decl, attrs):
         mangled = attrs.get(XML_AN_MANGLED)
