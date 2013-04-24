@@ -149,6 +149,49 @@ class hierarchy_info_t(object):
         return self._declaration_path_hash
 
 
+class template_parameter_info_t( object ):
+    """tries to describes the template paramters of a class
+
+    note: due the lack of py++ functionality the parameter might be None
+    """
+    def __init__(self, name, related_decl=None, why_none=""):
+        """creates class that contains partial information about template arguments"""
+        self.name = name
+        self.related_decl = related_decl
+        self._why_none = why_none
+        assert(self.related_decl is not None or why_none)
+
+    def __eq__(self, other):
+        if not isinstance( other, hierarchy_info_t ):
+            return False
+        return (algorithm.declaration_path( self.related_decl ) == algorithm.declaration_path( other.relateddecl )
+               and self.name == other.name)
+
+    def __ne__( self, other):
+        return not self.__eq__( other )
+
+    def _get_related_decl(self):
+        return self._related_decl
+    def _set_related_decl(self, decl):
+        #if not decl is None:
+        #    assert( isinstance( decl, declartion_t ) )
+        self._related_decl = decl
+    related_decl = property( _get_related_decl, _set_related_decl
+                              , doc="reference to related declaration ")
+
+    def _get_name(self):
+        return self._name
+    def _set_name(self, name):
+        assert( isinstance(name, str) )
+        self._name =name
+    name = property( _get_name, _set_name )
+
+    @property
+    def why_none(self):
+        """Explains why the related_decl is None"""
+        return self._why_none
+
+
 class class_declaration_t(declaration.declaration_t):
 
     """describes class declaration"""
@@ -207,6 +250,7 @@ class class_t(
         self._public_members = []
         self._private_members = []
         self._protected_members = []
+        self._template_args = None # Lazy evaluation
         self._aliases = []
         self._recursive_bases = None
         self._recursive_derived = None
@@ -511,6 +555,17 @@ class class_t(
                     base.access_type,
                     "base class"))
 
+        for arg in self.template_args:
+            if arg.related_decl:
+                try:
+                    answer.append(
+                        dependency_info_t(
+                            self,
+                            arg.related_decl,
+                            ACCESS_TYPES.PUBLIC,
+                            "template argument"))
+                except: NotImplementedError
+
         if recursive:
             for access_type in ACCESS_TYPES.ALL:
                 answer.extend(self.__find_out_member_dependencies(access_type))
@@ -538,6 +593,30 @@ class class_t(
             curr = parent
             parent = parent.parent
         return curr
+
+    @property
+    def template_args(self):
+        if self._template_args is None:
+            from . import templates
+            from pygccxml.declarations import enumeration_t, typedef_t
+            if templates.is_instantiation(self.name):
+                args = []
+                for arg in templates.args(self.name):
+                    decls_f = lambda d: not (isinstance(d, (enumeration_t, typedef_t)))
+                    decls = [d for d in self.top_parent.decls('::' + arg, allow_empty=True) if decls_f(d)]
+                    if len(decls) == 0:
+                        error = "Could not find declaration: ::" + arg
+                        args.append(template_parameter_info_t(arg, why_none=error))
+                    elif len(decls) == 1:
+                        args.append(template_parameter_info_t(arg, decls[0]))
+                    else:
+                        error = "Could not decide between declarations: "
+                        error += str(decls)
+                        args.append(template_parameter_info_t(arg, why_none=error))
+                self._template_args = args
+            else:
+                self._template_args = []
+        return self._template_args
 
 
 class_types = (class_t, class_declaration_t)
