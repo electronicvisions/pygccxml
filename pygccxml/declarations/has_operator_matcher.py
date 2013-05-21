@@ -6,9 +6,14 @@ from . import cpptypes
 
 def has_public_binary_operator(type_, operator_symbol):
     """returns True, if `type_` has public binary operator, otherwise False"""
-    type_ = type_traits.remove_alias(type_)
-    type_ = type_traits.remove_cv(type_)
-    type_ = type_traits.remove_declarated(type_)
+    def decay(type_):
+        type_ = type_traits.remove_reference( type_ )
+        type_ = type_traits.remove_pointer( type_ )
+        type_ = type_traits.remove_alias( type_ )
+        type_ = type_traits.remove_cv( type_ )
+        type_ = type_traits.remove_declarated( type_ )
+        return type_
+    type_ = decay(type_)
     assert isinstance(type_, class_declaration.class_t)
 
     if type_traits.is_std_string(type_) or type_traits.is_std_wstring(type_):
@@ -16,14 +21,7 @@ def has_public_binary_operator(type_, operator_symbol):
         # instantiated
         return True
 
-    operators = type_.member_operators(
-        function=matchers.custom_matcher_t(
-            lambda decl: not decl.is_artificial) &
-        matchers.access_type_matcher_t('public'),
-        symbol=operator_symbol, allow_empty=True, recursive=False)
-    if operators:
-        return True
-
+    # search free functions
     declarated = cpptypes.declarated_t(type_)
     const = cpptypes.const_t(declarated)
     reference = cpptypes.reference_t(const)
@@ -35,17 +33,25 @@ def has_public_binary_operator(type_, operator_symbol):
         recursive=True)
     if operators:
         return True
-    for bi in type_.recursive_bases:
-        assert isinstance(bi, class_declaration.hierarchy_info_t)
-        if bi.access_type != class_declaration.ACCESS_TYPES.PUBLIC:
-            continue
-        operators = bi.related_class.member_operators(
+    all_bases = [type_] + [ x.related_class for x in type_.recursive_bases
+                  if x.access_type == class_declaration.ACCESS_TYPES.PUBLIC
+                ]
+
+    for cls in all_bases:
+        operators = cls.member_operators(
             function=matchers.custom_matcher_t(
                 lambda decl: not decl.is_artificial) &
             matchers.access_type_matcher_t('public'),
             symbol=operator_symbol, allow_empty=True, recursive=False)
-        if operators:
-            return True
+
+        if not operators:
+            continue
+
+        for op in operators:
+            arg = decay(op.argument_types[0])
+            if arg in all_bases:
+                return True
+        return False  # do not match further base types (name hiding)
     return False
 
 
