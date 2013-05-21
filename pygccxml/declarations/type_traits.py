@@ -430,23 +430,21 @@ def has_any_non_copyconstructor( type):
 def has_public_binary_operator( type_, operator_symbol ):
     """returns True, if `type_` has public binary operator, otherwise False"""
     not_artificial = lambda decl: not decl.is_artificial
-    type_ = remove_alias( type_ )
-    type_ = remove_cv( type_ )
-    type_ = remove_declarated( type_ )
+    def decay(type_):
+        type_ = remove_reference( type_ )
+        type_ = remove_pointer( type_ )
+        type_ = remove_alias( type_ )
+        type_ = remove_cv( type_ )
+        type_ = remove_declarated( type_ )
+        return type_
+    type_ = decay(type_)
     assert isinstance( type_, class_declaration.class_t )
 
     if is_std_string( type_ ) or is_std_wstring( type_ ):
         #In some case compare operators of std::basic_string are not instantiated
         return True
 
-    operators = type_.member_operators( function=matchers.custom_matcher_t( not_artificial ) \
-                                                 & matchers.access_type_matcher_t( 'public' )
-                                       , symbol=operator_symbol
-                                       , allow_empty=True
-                                       , recursive=False )
-    if operators:
-        return True
-
+    # search free functions
     t = cpptypes.declarated_t( type_ )
     t = cpptypes.const_t( t )
     t = cpptypes.reference_t( t )
@@ -457,17 +455,27 @@ def has_public_binary_operator( type_, operator_symbol ):
                                            , recursive=True )
     if operators:
         return True
-    for bi in type_.recursive_bases:
-        assert isinstance( bi, class_declaration.hierarchy_info_t )
-        if bi.access_type != class_declaration.ACCESS_TYPES.PUBLIC:
+
+    # search member function or meber function in name type
+    all_bases = [type_] + [ x.related_class for x in type_.recursive_bases
+                  if x.access_type == class_declaration.ACCESS_TYPES.PUBLIC
+                ]
+
+    for cls in all_bases:
+        operators = cls.member_operators( function=matchers.custom_matcher_t( not_artificial ) \
+                                                 & matchers.access_type_matcher_t( 'public' )
+                                       , symbol=operator_symbol
+                                       , allow_empty=True
+                                       , recursive=False )
+
+        if not operators:
             continue
-        operators = bi.related_class.member_operators( function=matchers.custom_matcher_t( not_artificial ) \
-                                                                & matchers.access_type_matcher_t( 'public' )
-                                                       , symbol=operator_symbol
-                                                       , allow_empty=True
-                                                       , recursive=False )
-        if operators:
-            return True
+
+        for op in operators:
+            arg = decay(op.argument_types[0])
+            if arg in all_bases:
+                return True
+        return False  # do not match further base types (name hiding)
     return False
 
 def has_public_equal( type ):
