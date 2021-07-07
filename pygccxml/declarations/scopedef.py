@@ -7,7 +7,7 @@
 
 import time
 import warnings
-import collections
+import collections.abc as collections
 from . import algorithm
 from . import templates
 from . import declaration
@@ -293,7 +293,7 @@ class scopedef_t(declaration.declaration_t):
         if self.name == '::':
             self._logger.debug(
                 "preparing data structures for query optimizer - started")
-        start_time = time.clock()
+        start_time = time.perf_counter()
 
         self.clear_optimizer()
 
@@ -327,7 +327,7 @@ class scopedef_t(declaration.declaration_t):
         if self.name == '::':
             self._logger.debug((
                 "preparing data structures for query optimizer - " +
-                "done( %f seconds ). "), (time.clock() - start_time))
+                "done( %f seconds ). "), (time.perf_counter() - start_time))
         self._optimized = True
 
     @staticmethod
@@ -475,7 +475,7 @@ class scopedef_t(declaration.declaration_t):
     def _find_single(self, match_class, **keywds):
         """implementation details"""
         self._logger.debug('find single query execution - started')
-        start_time = time.clock()
+        start_time = time.perf_counter()
         norm_keywds = self.__normalize_args(**keywds)
         decl_matcher = self.__create_matcher(match_class, **norm_keywds)
         dtype = self.__findout_decl_type(match_class, **norm_keywds)
@@ -484,13 +484,13 @@ class scopedef_t(declaration.declaration_t):
         found = matcher.get_single(decl_matcher, decls, False)
         self._logger.debug(
             'find single query execution - done( %f seconds )',
-            (time.clock() - start_time))
+            (time.perf_counter() - start_time))
         return found
 
     def _find_multiple(self, match_class, **keywds):
         """implementation details"""
         self._logger.debug('find all query execution - started')
-        start_time = time.clock()
+        start_time = time.perf_counter()
         norm_keywds = self.__normalize_args(**keywds)
         decl_matcher = self.__create_matcher(match_class, **norm_keywds)
         dtype = self.__findout_decl_type(match_class, **norm_keywds)
@@ -502,7 +502,7 @@ class scopedef_t(declaration.declaration_t):
         self._logger.debug('%d declaration(s) that match query', len(mfound))
         self._logger.debug(
             'find single query execution - done( %f seconds )',
-            (time.clock() - start_time))
+            (time.perf_counter() - start_time))
         if not mfound and not allow_empty:
             raise RuntimeError(
                 "Multi declaration query returned 0 declarations.")

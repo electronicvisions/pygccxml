@@ -27,7 +27,7 @@ if os.path.exists(dcache_file_name):
 def test_on_windows_dot_h():
     he = r"2003\Vc7\PlatformSDK\Include\windows.h"
     windows_header = r"D:\Program Files\Microsoft Visual Studio .NET " + he
-    clock_prev = time.clock()
+    clock_prev = time.perf_counter()
     dcache = parser.file_cache_t(dcache_file_name)
     reader = parser.source_reader_t(
         parser.xml_generator_configuration_t(
@@ -35,18 +35,18 @@ def test_on_windows_dot_h():
         dcache)
     reader.read_file(windows_header)
     dcache.flush()
-    clock_now = time.clock()
-    print('without cache: %f seconds' % (clock_now - clock_prev))
+    clock_now = time.perf_counter()
+    print(('without cache: %f seconds' % (clock_now - clock_prev)))
 
-    clock_prev = time.clock()
+    clock_prev = time.perf_counter()
     dcache = parser.file_cache_t(dcache_file_name)
     reader = parser.source_reader_t(
         parser.xml_generator_configuration_t(
             xml_generator_path=autoconfig.generator_path),
         dcache)
     reader.read_file(windows_header)
-    clock_now = time.clock()
-    print('with cache   : %f seconds' % (clock_now - clock_prev))
+    clock_now = time.perf_counter()
+    print(('with cache   : %f seconds' % (clock_now - clock_prev)))
 
 #########################################################################
 # testing include_std.hpp
@@ -56,7 +56,7 @@ def test_source_on_include_std_dot_hpp():
     include_std_header = os.path.join(
         autoconfig.data_directory,
         'include_std.hpp')
-    clock_prev = time.clock()
+    clock_prev = time.perf_counter()
     dcache = parser.file_cache_t(dcache_file_name)
     reader = parser.source_reader_t(
         parser.xml_generator_configuration_t(
@@ -64,18 +64,18 @@ def test_source_on_include_std_dot_hpp():
         dcache)
     reader.read_file(include_std_header)
     dcache.flush()
-    clock_now = time.clock()
-    print('without cache: %f seconds' % (clock_now - clock_prev))
+    clock_now = time.perf_counter()
+    print(('without cache: %f seconds' % (clock_now - clock_prev)))
 
-    clock_prev = time.clock()
+    clock_prev = time.perf_counter()
     dcache = parser.file_cache_t(dcache_file_name)
     reader = parser.source_reader_t(
         parser.xml_generator_configuration_t(
             xml_generator_path=autoconfig.generator_path),
         dcache)
     reader.read_file(include_std_header)
-    clock_now = time.clock()
-    print('with cache   : %f seconds' % (clock_now - clock_prev))
+    clock_now = time.perf_counter()
+    print(('with cache   : %f seconds' % (clock_now - clock_prev)))
 
 
 #########################################################################
@@ -84,7 +84,7 @@ def test_project_on_include_std_dot_hpp():
     include_std_header = os.path.join(
         autoconfig.data_directory,
         'include_std.hpp')
-    clock_prev = time.clock()
+    clock_prev = time.perf_counter()
     dcache = parser.file_cache_t(dcache_file_name)
     reader = parser.project_reader_t(
         parser.xml_generator_configuration_t(
@@ -92,18 +92,18 @@ def test_project_on_include_std_dot_hpp():
         dcache)
     reader.read_files([include_std_header])
     dcache.flush()
-    clock_now = time.clock()
-    print('without cache: %f seconds' % (clock_now - clock_prev))
+    clock_now = time.perf_counter()
+    print(('without cache: %f seconds' % (clock_now - clock_prev)))
 
-    clock_prev = time.clock()
+    clock_prev = time.perf_counter()
     dcache = parser.file_cache_t(dcache_file_name)
     reader = parser.project_reader_t(
         parser.xml_generator_configuration_t(
             xml_generator_path=autoconfig.generator_path),
         dcache)
     reader.read_files([include_std_header])
-    clock_now = time.clock()
-    print('with cache   : %f seconds' % (clock_now - clock_prev))
+    clock_now = time.perf_counter()
+    print(('with cache   : %f seconds' % (clock_now - clock_prev)))
 
 
 def profile_project():
