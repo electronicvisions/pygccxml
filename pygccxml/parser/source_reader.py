@@ -452,6 +452,7 @@ class source_reader_t(object):
         decls = scanner_.declarations()
         types = scanner_.types()
         files = scanner_.files()
+        files = {f_name: os.path.abspath(f) for f_name, f in files.items()}
         linker_ = linker.linker_t(
             decls=decls,
             types=types,
