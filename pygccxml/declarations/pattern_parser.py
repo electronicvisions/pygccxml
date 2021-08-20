@@ -96,24 +96,6 @@ class parser_t(object):
         # The list of arguments to be returned
         args = []
 
-        parentheses_blocks = []
-        prev_span = 0
-        if self.__begin == "<":
-            # In case where we are splitting template names, there
-            # can be parentheses blocks (for arguments) that need to be taken
-            # care of.
-
-            # Build a regex matching a space (\s)
-            # + something inside parentheses
-            regex = re.compile("\\s\\(.*?\\)")
-            for m in regex.finditer(args_only):
-                # Store the position and the content
-                parentheses_blocks.append([m.start() - prev_span, m.group()])
-                prev_span = m.end() - m.start()
-                # Cleanup the args_only string by removing the parentheses and
-                # their content.
-                args_only = args_only.replace(m.group(), "")
-
         # Now we are trying to split the args_only string in multiple arguments
         previous_found, found = 0, 0
         while True:
@@ -125,27 +107,6 @@ class parser_t(object):
             else:
                 args.append(args_only[previous_found: found].strip())
             previous_found = found + 1  # skip found separator
-
-        # Get the size and position for each argument
-        absolute_pos_list = []
-        absolute_pos = 0
-        for arg in args:
-            absolute_pos += len(arg)
-            absolute_pos_list.append(absolute_pos)
-
-        for item in parentheses_blocks:
-            # In case where there are parentheses blocks we add them back
-            # to the right argument
-            parentheses_block_absolute_pos = item[0]
-            parentheses_block_string = item[1]
-
-            current_arg_absolute_pos = 0
-            for arg_index, arg_absolute_pos in enumerate(absolute_pos_list):
-                current_arg_absolute_pos += arg_absolute_pos
-                if current_arg_absolute_pos >= parentheses_block_absolute_pos:
-                    # Add the parentheses block back and break out of the loop.
-                    args[arg_index] += parentheses_block_string
-                    break
 
         return args
 
